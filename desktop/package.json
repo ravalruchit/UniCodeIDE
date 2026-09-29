@@ -1,0 +1,22 @@
+{
+  "name": "unicodeide-desktop-lab-client",
+  "version": "1.0.0",
+  "description": "UniCodeIDE University Computer Lab Workstation Client",
+  "main": "src/main/main.js",
+  "type": "module",
+  "scripts": {
+    "start": "electron src/main/main.js",
+    "dev": "cross-env NODE_ENV=development electron src/main/main.js",
+    "build": "node scripts/build.js",
+    "test": "node test/desktop-security-test.js"
+  },
+  "keywords": [
+    "unicodeide",
+    "desktop",
+    "lab-client",
+    "education",
+    "assessment"
+  ],
+  "author": "UniCodeIDE Enterprise Engineering",
+  "license": "UNLICENSED"
+}

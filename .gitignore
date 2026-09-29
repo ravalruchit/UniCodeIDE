@@ -1,5 +1,30 @@
+# ========================
+# Dependencies
+# ========================
+node_modules/
+.pnp
+.pnp.js
+
+# ========================
+# Build outputs
+# ========================
+dist/
+dist-ssr/
+build/
+*.local
+out/
+
+# ========================
+# Environment / Secrets
+# ========================
+.env
+.env.*
+!.env.example
+
+# ========================
 # Logs
-logs
+# ========================
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,21 +32,37 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
+# ========================
+# OS / Editor files
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
 .vscode/*
 !.vscode/extensions.json
-.idea
-.DS_Store
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Environment secrets
-.env
+# ========================
+# Lock files (optional - remove lines below to track them)
+# ========================
+# package-lock.json
+
+# ========================
+# Test artifacts
+# ========================
+coverage/
+.nyc_output/
+test-results/
+
+# ========================
+# Temporary / scratch files
+# ========================
+*.tmp
+*.temp
+*.bak
+scratch/

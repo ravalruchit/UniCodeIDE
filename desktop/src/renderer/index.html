@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UniCodeIDE Lab Client</title>
+    <link rel="stylesheet" href="../../dist/assets/index.css" />
+  </head>
+  <body class="bg-slate-950 text-slate-100 font-sans antialiased overflow-hidden select-none">
+    <div id="desktop-root"></div>
+    <script type="module">
+      import React from 'react';
+      import ReactDOM from 'react-dom/client';
+      import DesktopApp from './DesktopApp.jsx';
+
+      const root = ReactDOM.createRoot(document.getElementById('desktop-root'));
+      root.render(React.createElement(DesktopApp));
+    </script>
+  </body>
+</html>
