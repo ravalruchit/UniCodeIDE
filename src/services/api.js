@@ -1,7 +1,10 @@
 // API Client using native fetch() - No external HTTP library
 const API_BASE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL) ||
-  'http://localhost:5000/api';
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1'
+    ? 'https://unicodeide-backend.onrender.com/api'
+    : 'http://localhost:5000/api');
+
 
 class ApiError extends Error {
   constructor(message, status = 500, details = null) {

@@ -18,6 +18,17 @@ import { getDBStatus } from '../config/db.js';
 
 const router = Router();
 
+// API Gateway Root endpoint
+router.get('/', (req, res) => {
+  res.json({
+    status: 'online',
+    message: 'UniCodeIDE Enterprise API Gateway is live',
+    healthCheck: '/api/health',
+    version: '1.0.0',
+    databaseConnected: getDBStatus(),
+  });
+});
+
 // Health check endpoint
 router.get('/health', (req, res) => {
   res.json({

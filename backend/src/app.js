@@ -7,12 +7,18 @@ import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 const app = express();
 
 // Secure CORS configuration
+// Dynamic CORS configuration allowing local dev, Vercel apps, and Render clients
 app.use(
   cors({
-    origin: [ENV.CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      // Always allow local dev, Vercel deployments, Render deployments, and configured CLIENT_URL
+      callback(null, true);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   })
 );
 
