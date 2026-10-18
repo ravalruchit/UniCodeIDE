@@ -1,5 +1,12 @@
+import dns from 'node:dns';
 import mongoose from 'mongoose';
 import { ENV } from './config/env.js';
+
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch {
+  // Ignore
+}
 import { University } from './models/University.js';
 import { User, USER_ROLES } from './models/User.js';
 import { Department } from './models/Department.js';

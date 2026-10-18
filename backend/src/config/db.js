@@ -1,5 +1,13 @@
+import dns from 'node:dns';
 import mongoose from 'mongoose';
 import { ENV } from './env.js';
+
+// Resolve MongoDB SRV lookups reliably across networks
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch {
+  // Ignore if not supported in environment
+}
 
 let isConnected = false;
 
