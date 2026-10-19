@@ -23,6 +23,7 @@ import FAQ from './pages/public/FAQ';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
 
 // Role Dashboards
 import SuperAdminDashboard from './pages/dashboard/SuperAdminDashboard';
@@ -163,6 +164,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Authenticated Protected SaaS Application Routes */}
             <Route
@@ -238,6 +240,7 @@ function App() {
               />
 
               {/* University Admin Protected Routes */}
+              <Route path="univ-admin/*" element={<Navigate to="/app/university-admin/dashboard" replace />} />
               <Route
                 path="university-admin/dashboard"
                 element={

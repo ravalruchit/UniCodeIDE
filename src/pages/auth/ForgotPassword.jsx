@@ -98,33 +98,83 @@ export default function ForgotPassword() {
               </Button>
             </form>
           ) : (
-            <div className="text-center py-4 space-y-4 animate-fade-up">
-              <div className="h-12 w-12 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Check your inbox</h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                If an account matches <span className="font-semibold text-foreground">{email}</span>, we have sent a secure password reset link valid for 1 hour.
-              </p>
-
-              {tokenPreview && (
-                <div className="mt-4 p-3 rounded border border-border bg-muted/30 text-left">
-                  <div className="text-[10px] font-mono text-muted-foreground flex items-center mb-1">
-                    <KeyRound className="h-3 w-3 mr-1 text-primary" /> Demo Token Preview:
-                  </div>
-                  <div className="font-mono text-xs text-foreground break-all select-all">
-                    {tokenPreview}
+            <div className="py-2 space-y-4 animate-fade-up text-left">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
+                <CheckCircle2 className="h-5 w-5 shrink-0" />
+                <div>
+                  <div className="font-semibold text-xs">Reset Instructions Dispatched</div>
+                  <div className="text-[11px] text-emerald-500/80">
+                    Email sent to <span className="font-semibold text-foreground">{email}</span> (expires in 1 hour).
                   </div>
                 </div>
-              )}
+              </div>
 
-              <Button
-                variant="outline"
-                onClick={() => setSubmitted(false)}
-                className="w-full text-xs"
-              >
-                Try another email
-              </Button>
+              {/* Simulated Outgoing University Email Preview */}
+              <div className="rounded-xl border border-border bg-muted/40 overflow-hidden shadow-inner">
+                <div className="p-3 border-b border-border bg-muted/70 flex items-center justify-between text-[11px]">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="font-mono font-semibold text-foreground">University Mail Gateway</span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground font-mono">SMTP 250 OK</span>
+                </div>
+
+                <div className="p-4 space-y-3 bg-card/60 text-xs">
+                  <div className="space-y-1 pb-2 border-b border-border/60 text-[11px]">
+                    <div className="text-muted-foreground">
+                      <span className="font-mono text-[10px] uppercase text-muted-foreground/80 w-14 inline-block">From:</span>
+                      <span className="text-foreground">security@meridian.edu (UniCodeIDE Security)</span>
+                    </div>
+                    <div className="text-muted-foreground">
+                      <span className="font-mono text-[10px] uppercase text-muted-foreground/80 w-14 inline-block">To:</span>
+                      <span className="text-foreground">{email}</span>
+                    </div>
+                    <div className="text-muted-foreground">
+                      <span className="font-mono text-[10px] uppercase text-muted-foreground/80 w-14 inline-block">Subject:</span>
+                      <span className="font-semibold text-foreground">Action Required: Reset your UniCodeIDE password</span>
+                    </div>
+                  </div>
+
+                  <p className="text-muted-foreground leading-relaxed">
+                    Hello, we received an authorization request to reset the password associated with this university profile. Click the secure link below to proceed:
+                  </p>
+
+                  <div className="py-2 text-center">
+                    <Link
+                      to={`/reset-password?token=${tokenPreview}&email=${encodeURIComponent(email)}`}
+                      className="inline-flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-xs shadow-md hover:bg-primary/90 transition-all cursor-pointer"
+                    >
+                      <KeyRound className="h-4 w-4 mr-2" />
+                      Open Password Reset Screen
+                    </Link>
+                  </div>
+
+                  <div className="text-[10px] font-mono text-muted-foreground/70 bg-muted/60 p-2 rounded border border-border/60 break-all select-all">
+                    Reset Token: {tokenPreview || 'Simulated-Token-64-Bytes'}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const resetUrl = `${window.location.origin}/reset-password?token=${tokenPreview}&email=${encodeURIComponent(email)}`;
+                    navigator.clipboard.writeText(resetUrl);
+                    alert('Password reset link copied to clipboard!');
+                  }}
+                  className="flex-1 text-xs"
+                >
+                  Copy Reset Link
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setSubmitted(false)}
+                  className="text-xs text-muted-foreground"
+                >
+                  Try another email
+                </Button>
+              </div>
             </div>
           )}
 

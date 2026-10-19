@@ -1,6 +1,7 @@
 import { verifyToken } from '../utils/jwt.js';
 import { User } from '../models/User.js';
 import { getDBStatus } from '../config/db.js';
+import { ENV } from '../config/env.js';
 
 export const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -13,14 +14,29 @@ export const authenticateToken = async (req, res, next) => {
     });
   }
 
-  // Gracefully handle mock/demo tokens from offline frontend sessions
+  // In production, reject any mock/demo tokens unconditionally
   if (token.startsWith('mock-jwt-token-')) {
+    if (ENV.NODE_ENV === 'production') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid authentication token. Unsigned mock tokens are prohibited in production.',
+      });
+    }
+
+    // In local development only: strictly restrict to student fallback (prohibit admin escalation)
+    const rolePart = (token.split('-')[3] || 'student').toUpperCase();
+    if (rolePart !== 'STUDENT') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid authentication token. Mock tokens cannot be used for administrative privileges.',
+      });
+    }
+
     try {
-      const rolePart = (token.split('-')[3] || 'student').toUpperCase();
       if (getDBStatus()) {
-        const demoUser = await User.findOne({ role: rolePart }).populate('universityId', 'name code plan');
-        if (demoUser) {
-          req.user = demoUser;
+        const studentUser = await User.findOne({ role: 'STUDENT' }).populate('universityId', 'name code plan');
+        if (studentUser) {
+          req.user = studentUser;
           return next();
         }
       }
@@ -30,7 +46,7 @@ export const authenticateToken = async (req, res, next) => {
         id: 'demo-student-01',
         name: 'Alex Rivera',
         email: 'student@meridian.edu',
-        role: rolePart,
+        role: 'STUDENT',
         status: 'ACTIVE',
       };
       return next();

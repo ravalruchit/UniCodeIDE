@@ -7,13 +7,29 @@ import { notFoundHandler, errorHandler } from './middleware/errorMiddleware.js';
 const app = express();
 
 // Secure CORS configuration
-// Dynamic CORS configuration allowing local dev, Vercel apps, and Render clients
+// Secure CORS configuration with production domain validation
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, server-to-server)
+      // Allow requests with no origin (e.g. curl, server-to-server, health probes)
       if (!origin) return callback(null, true);
-      // Always allow local dev, Vercel deployments, Render deployments, and configured CLIENT_URL
+
+      if (ENV.NODE_ENV === 'production') {
+        const isAllowed =
+          origin === ENV.CLIENT_URL ||
+          origin.endsWith('.vercel.app') ||
+          origin.endsWith('.onrender.com') ||
+          origin.endsWith('.railway.app') ||
+          origin.includes('localhost') ||
+          origin.includes('127.0.0.1');
+
+        if (isAllowed) {
+          return callback(null, true);
+        }
+        return callback(new Error(`CORS origin '${origin}' blocked by security policy.`));
+      }
+
+      // Permissive in development
       callback(null, true);
     },
     credentials: true,

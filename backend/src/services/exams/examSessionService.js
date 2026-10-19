@@ -301,13 +301,22 @@ export class ExamSessionService {
    * Internal auto-submit or finalizer method
    */
   async autoSubmitSession(sessionId, submissionType = 'AUTO_SUBMITTED') {
-    const session = await ExamSession.findById(sessionId);
-    if (!session || session.status !== 'IN_PROGRESS') {
-      return session;
+    const submittedAt = new Date();
+    const targetStatus = submissionType === 'MANUAL' ? 'SUBMITTED' : 'AUTO_SUBMITTED';
+
+    // Atomic compare-and-swap transition to prevent duplicate submissions & race conditions
+    const session = await ExamSession.findOneAndUpdate(
+      { _id: sessionId, status: 'IN_PROGRESS' },
+      { $set: { status: targetStatus, submittedAt } },
+      { new: true }
+    );
+
+    if (!session) {
+      // Already finalized by a concurrent request or timer; return existing session
+      return await ExamSession.findById(sessionId);
     }
 
     const exam = await Exam.findById(session.examId);
-    const submittedAt = new Date();
     const finalAnswers = [];
     let totalScore = 0;
 

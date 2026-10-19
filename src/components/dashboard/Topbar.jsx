@@ -1,8 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ThemeToggle } from '../navigation/ThemeToggle';
 import { ROLE_CONFIG } from '../../auth/roles';
+import { notificationService } from '../../services/notificationService';
 import {
   Menu,
   Bell,
@@ -11,18 +12,98 @@ import {
   ChevronDown,
   Building,
   CheckCircle2,
-  ShieldAlert
+  ShieldAlert,
+  Award,
+  Calendar,
+  Sparkles,
+  Trash2,
+  Check,
+  ArrowRight
 } from 'lucide-react';
 
 export function Topbar({ onToggleMobile }) {
   const { user, role, logout } = useAuth();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifFilter, setNotifFilter] = useState('ALL');
+  const [notifications, setNotifications] = useState([]);
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
   const navigate = useNavigate();
 
   const roleConfig = ROLE_CONFIG[role] || { name: 'User', badgeColor: 'bg-muted text-muted-foreground' };
+
+  // Sync notifications from notificationService
+  useEffect(() => {
+    const load = () => {
+      setNotifications(notificationService.getNotifications(role));
+    };
+    load();
+    const unsub = notificationService.subscribe(load);
+    return unsub;
+  }, [role]);
+
+  const unreadCount = useMemo(() => {
+    return notifications.filter((n) => !n.read).length;
+  }, [notifications]);
+
+  const displayedNotifications = useMemo(() => {
+    if (notifFilter === 'UNREAD') {
+      return notifications.filter((n) => !n.read);
+    }
+    return notifications;
+  }, [notifications, notifFilter]);
+
+  // Format relative time
+  const formatTime = (isoString) => {
+    try {
+      const diff = Math.max(0, Date.now() - new Date(isoString).getTime());
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      return `${days}d ago`;
+    } catch {
+      return '';
+    }
+  };
+
+  const getNotifIcon = (type) => {
+    switch (type) {
+      case 'GRADE':
+        return <Award className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />;
+      case 'EXAM':
+        return <Calendar className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />;
+      case 'CERTIFICATE':
+        return <Sparkles className="h-4 w-4 text-primary mt-0.5 shrink-0" />;
+      case 'SYSTEM':
+      default:
+        return <CheckCircle2 className="h-4 w-4 text-blue-500 mt-0.5 shrink-0" />;
+    }
+  };
+
+  const handleNotificationClick = (notif) => {
+    notificationService.markAsRead(notif.id, role);
+    setNotificationsOpen(false);
+    if (notif.link) {
+      navigate(notif.link);
+    }
+  };
+
+  const handleMarkAllRead = () => {
+    notificationService.markAllAsRead(role);
+  };
+
+  const handleClearAll = () => {
+    notificationService.clearAll(role);
+  };
+
+  const handleDeleteItem = (e, id) => {
+    e.stopPropagation();
+    notificationService.deleteNotification(id, role);
+  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -87,35 +168,132 @@ export function Topbar({ onToggleMobile }) {
             aria-label="View notifications"
           >
             <Bell className="h-4 w-4" />
-            <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
+            {unreadCount > 0 ? (
+              <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center shadow">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            ) : null}
           </button>
 
           {notificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 rounded-xl border border-border bg-card p-4 shadow-xl z-50 animate-fade-up text-left">
-              <div className="flex items-center justify-between pb-2 border-b border-border mb-3">
-                <span className="text-xs font-semibold text-foreground uppercase tracking-wider font-mono">
-                  Notifications
-                </span>
-                <span className="text-[10px] text-primary hover:underline cursor-pointer">
-                  Mark all read
-                </span>
-              </div>
-              <div className="space-y-2.5">
-                <div className="flex items-start space-x-2.5 text-xs">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-500 mt-0.5 shrink-0" />
-                  <div>
-                    <div className="font-medium text-foreground">Cloud IDE Execution Grid online</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">Piston runtimes active · 10m ago</div>
-                  </div>
+            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-border bg-card shadow-2xl z-50 animate-fade-up text-left overflow-hidden">
+              {/* Header */}
+              <div className="p-3 border-b border-border bg-muted/20 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-foreground uppercase tracking-wider font-mono">
+                    Notifications
+                  </span>
+                  {unreadCount > 0 && (
+                    <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-primary/20 text-primary font-bold">
+                      {unreadCount} new
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-start space-x-2.5 text-xs">
-                  <ShieldAlert className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
-                  <div>
-                    <div className="font-medium text-foreground">Scheduled proctoring window</div>
-                    <div className="text-[11px] text-muted-foreground mt-0.5">CS101 Midterm scheduled for Friday</div>
-                  </div>
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleMarkAllRead}
+                      className="text-[11px] text-primary hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <Check className="h-3 w-3" />
+                      Mark read
+                    </button>
+                  )}
+                  {notifications.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAll}
+                      className="text-[11px] text-muted-foreground hover:text-destructive cursor-pointer"
+                      title="Clear all"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
+
+              {/* Filter Tabs */}
+              <div className="px-3 py-1.5 border-b border-border/60 bg-muted/10 flex items-center gap-2 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => setNotifFilter('ALL')}
+                  className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                    notifFilter === 'ALL'
+                      ? 'bg-accent text-foreground font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  All ({notifications.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNotifFilter('UNREAD')}
+                  className={`px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                    notifFilter === 'UNREAD'
+                      ? 'bg-accent text-foreground font-semibold'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Unread ({unreadCount})
+                </button>
+              </div>
+
+              {/* Notifications List */}
+              <div className="max-h-80 overflow-y-auto divide-y divide-border/40">
+                {displayedNotifications.length === 0 ? (
+                  <div className="p-6 text-center text-muted-foreground text-xs space-y-1">
+                    <CheckCircle2 className="h-8 w-8 text-muted-foreground/40 mx-auto" />
+                    <p className="font-medium text-foreground">You are all caught up!</p>
+                    <p className="text-[11px]">No notifications to display right now.</p>
+                  </div>
+                ) : (
+                  displayedNotifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotificationClick(notif)}
+                      className={`p-3 transition-colors hover:bg-accent/40 cursor-pointer flex items-start gap-2.5 relative group ${
+                        !notif.read ? 'bg-primary/5' : ''
+                      }`}
+                    >
+                      {!notif.read && (
+                        <span className="absolute left-1.5 top-4 h-1.5 w-1.5 rounded-full bg-primary" />
+                      )}
+                      <div className="pl-1 shrink-0">{getNotifIcon(notif.type)}</div>
+                      <div className="flex-1 min-w-0 pr-4">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-xs font-semibold truncate ${!notif.read ? 'text-foreground' : 'text-muted-foreground'}`}>
+                            {notif.title}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground shrink-0 font-mono">
+                            {formatTime(notif.timestamp)}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                          {notif.message}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteItem(e, notif.id)}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground hover:text-destructive rounded transition-opacity"
+                        title="Dismiss"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Footer */}
+              {displayedNotifications.length > 0 && (
+                <div className="p-2 border-t border-border bg-muted/20 text-center">
+                  <span className="text-[10px] text-muted-foreground">
+                    Click any notification to navigate directly to its page
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>
